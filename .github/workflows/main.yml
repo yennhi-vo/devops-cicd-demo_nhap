@@ -1,0 +1,54 @@
+# Tên của Workflow
+name: Deploy Static Site to Pages
+
+# 1. TRIGGER: Kích hoạt khi có push lên nhánh chính (main)
+on:
+  push:
+    branches: ["main"]
+  # Cho phép chạy thủ công qua giao diện GitHub
+  workflow_dispatch:
+
+# Quyền hạn cần thiết để triển khai lên GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Các công việc (Jobs)
+jobs:
+  # Job CI (Build & Test mô phỏng)
+  build:
+    name: Build & Lint (CI)
+    runs-on: ubuntu-latest
+    steps:
+      # Bước 1: Checkout code
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Bước 2 (Mô phỏng BUILD): Chuẩn bị môi trường và file
+      # Trong dự án tĩnh, bước này thường là cài đặt Node.js để chạy Linter
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Bước 3 (Mô phỏng TEST/LINT): Kiểm tra cú pháp/chuẩn code
+      # Sử dụng HTMLHint để kiểm tra file index.html cơ bản
+      - name: Install and Run HTML Linter (Test)
+        run: |
+          npm install -g htmlhint
+          # Lệnh kiểm tra, nếu có lỗi, bước này sẽ thất bại
+          htmlhint index.html
+
+      # Bước 4: Chuẩn bị Artifact (đầu ra của CI)
+      # Sử dụng action chuẩn của GitHub Pages để định nghĩa artifact cho CD
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      
+      # Bước 5: Upload Artifact
+      # Lưu file index.html đã được kiểm tra thành công để bước Deploy sử dụng
+      - name: Upload Artifact for Deployment
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Thư mục chứa nội dung trang web cần triển khai
+          path: '.'
