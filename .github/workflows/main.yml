@@ -52,3 +52,16 @@ jobs:
         with:
           # Thư mục chứa nội dung trang web cần triển khai
           path: '.'
+# Job CD (Deploy)
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    # Chỉ chạy khi Job 'build' thành công
+    needs: build
+    steps:
+      # Bước 1: Deploy Artifact đã Upload lên GitHub Pages
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
